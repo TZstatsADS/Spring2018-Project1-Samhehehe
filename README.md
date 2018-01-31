@@ -1,17 +1,14 @@
 # Spring 2018
-# Project 1: What did the presidents say at their inauguation?
+
+## Project 1: What are the differences of the inaugural speeches between the Democratic and Republican?
+
+### This project is conducted by Shan He
 
 ![image](figs/title.jpg)
 
-### [Project Description](doc/)
-This is the first and only *individual* (as opposed to *team*) this semester. 
+### [Project summary](doc/)
 
-Term: Spring 2018
-
-+ Projec title: Lorem ipsum dolor sit amet
-+ This project is conducted by [your name]
-
-+ Project summary: [a short summary] Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+For this project, we firstly created two data summary tables of the words of inaugural speeches for the Democratic and the Republican party respectively. Simultaneously, two plots, respectively showing the first and the second inaugural speech of presidents, are also drew to demonstrate how the words of inaugural speeches changed through years. By comparing with the two parties, it can be found that most of the Republican's inaugural speeches have more words than that of the Democratic during the same period of time, especially for the first inaugural speech of each president. Then, an interactive word cloud is created to see the difference of the texts those speeches between two parties. The comparison shows the Republican tends to talk more about economics and business. However, the Democratic is apt to discuss more about the unity of the people and human rights.
 
 Following [suggestions](http://nicercode.github.io/blog/2013-04-05-projects/) by [RICH FITZJOHN](http://nicercode.github.io/about/#Team) (@richfitz). This folder is orgarnized as follows.
 
