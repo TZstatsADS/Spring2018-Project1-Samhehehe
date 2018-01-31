@@ -1,0 +1,257 @@
+---
+output:
+  html_document: default
+  html_notebook: default
+runtime: shiny
+---
+
+# Spring 2018
+## Project 1: What are the differences of the inaugural speeches between the Democratic and Republican?
+## This project is conducted by Shan He
+
+
+### Project summary: 
+
+For this project, we firstly created two data summary tables of the words of inaugural speeches for the Democratic and the Republican party respectively. Simultaneously, two plots, respectively showing the first and the second inaugural speech of presidents, are also drew to demonstrate how the words of inaugural speeches changed through years. By comparing with the two parties, it can be found that most of the Republican's inaugural speeches have more words than that of the Democratic during the same period of time, especially for the first inaugural speech of each president. Then, an interactive word cloud is created to see the difference of the texts those speeches between two parties. The comparison shows the Republican tends to talk more about economics and business. However, the Democratic is apt to discuss more about the unity of the people and human rights.
+
+
+```{r setup, include = FALSE}
+# Here we do the setup for this file 
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(warning = FALSE)
+```
+
+
+```{r part1, message=FALSE, warning=FALSE}
+# Load necessary packages 
+library(dplyr)
+library(readr)
+library(DT)
+library(tibble)
+#library(Rcharts)
+library(htmlwidgets)
+library(tidytext)
+library(tm)
+library(shiny)
+library(wordcloud)
+library(ggplot2)
+```
+
+
+```{r part2, message=FALSE, warning=FALSE}
+setwd("C:/StudyLife/Columbia/STAT 5243/Project 1/Spring2018-Project1-Samhehehe/doc")
+
+# Read in the basic information and speeches
+basicinfo <- read.csv("C:/StudyLife/Columbia/STAT 5243/Project 1/Spring2018-Project1-Samhehehe/data/InaugurationInfo.csv")
+
+dates <- read.table("C:/StudyLife/Columbia/STAT 5243/Project 1/Spring2018-Project1-Samhehehe/data/InauguationDates.txt", sep = "\t", header = TRUE)
+
+folder.path="C:/StudyLife/Columbia/STAT 5243/Project 1/Spring2018-Project1-Samhehehe/data/InauguralSpeeches"
+speeches=list.files(path = folder.path, pattern = "*.txt")
+prex.out=substr(speeches, 6, nchar(speeches)-4)
+```
+
+
+### Introduction:
+
+
+The compaign of the president between politica parties has been lasting for over 200 years without a stop. The Democratic and the Republican are the two major parts of the consistent compaign. Each of the party has some people won the compaign and served as the president of the United States. Meanwhile, every single president has their own inaugural speech. Hence, this project is trying to see the possible differences of those speeches between the two parties. 
+
+
+### Sortable table
+```{r part3, message=FALSE, warning=FALSE}
+# Displays R matrices or data frames as interactive HTML tables that support filtering, pagination, and sorting.
+sorttable <- datatable(basicinfo)
+sorttable
+```
+
+
+First of all, to achieve the goals of comparing, some packages are needed. So we installed and imported the necessary packages. Simultaneously, several datasets and 59 inaugural speeches are also imported for the data manipulation and test mining.
+
+After doing all those basic setups, a sortable table is shown. This table is an interactive HTML table which supports filtering, pagination and sorting. By showing this table, you can intuitively see the basic information of all the presidents since George Washington such as the names of presidents and the words of their inaugural speeches. As a consequence, you can get a first idea about the numerical data this project is dealing with.
+
+
+### Comparing the Years and Words
+```{r part4, message=FALSE, warning=FALSE}
+# Extract the years of the first speech of each president
+dates$FIRST <- as.character(dates$FIRST)
+dates$SECOND <- as.character(dates$SECOND)
+
+dates$FIRSTYEAR <- substring(dates$FIRST, nchar(dates$FIRST) - 3, nchar(dates$FIRST))
+dates$FIRSTYEAR <- as.numeric(dates$FIRSTYEAR)
+
+basicinfo_firstyear <- basicinfo[basicinfo$Term == "1", ]
+
+# Merge the two datasets (first speech and dates)
+completeframe_first <- merge(basicinfo_firstyear, dates, by.x = "President", by.y = "PRESIDENT")
+
+# Seperate the Democratic and Republican
+Democratic_data <- completeframe_first[completeframe_first$Party == "Democratic", ]
+Democratic_data <- Democratic_data[-5, ]
+Democratic_data$Words <- as.numeric(as.character(Democratic_data$Words))
+summary(Democratic_data$Words)
+
+Republican_data <- completeframe_first[completeframe_first$Party == "Republican", ]
+Republican_data <- Republican_data[-c(4,8), ]
+Republican_data$Words <- as.numeric(as.character(Republican_data$Words))
+summary(Republican_data$Words)
+
+# Draw the plot showing years of the first inaugural speech and their number of words
+ggplot() +
+  geom_line(mapping = aes(x = Democratic_data$FIRSTYEAR, y = Democratic_data$Words, color = "Democratic")) +
+  geom_line(mapping = aes(x = Republican_data$FIRSTYEAR, y = Republican_data$Words, color = "Republican")) +
+  labs(x = "Year of the First Inaugural Speech", y = "Words", title = "Words vs Years")
+
+
+#Merge the two datasets (second speech and dates)
+dates$SECONDYEAR <- substring(dates$SECOND, nchar(dates$SECOND) - 3, nchar(dates$SECOND))
+dates$SECONDYEAR <- as.numeric(dates$SECONDYEAR)
+basicinfo_secondyear <- basicinfo[basicinfo$Term == "2", ]
+completeframe_second <- merge(basicinfo_secondyear, dates, by.x = "President", by.y = "PRESIDENT")
+
+Democratic_data2 <- completeframe_second[completeframe_second$Party == "Democratic", ]
+Democratic_data2 <- Democratic_data2[-4, ]
+Democratic_data2$Words <- as.numeric(as.character(Democratic_data2$Words))
+
+Republican_data2 <- completeframe_second[completeframe_second$Party == "Republican", ]
+Republican_data2 <- Republican_data2[-4, ]
+Republican_data2$Words <- as.numeric(as.character(Republican_data2$Words))
+
+# Draw the plot showing years of the second inaugural speech and their number of words
+ggplot() +
+  geom_line(mapping = aes(x = Democratic_data2$SECONDYEAR, y = Democratic_data2$Words, color = "Democratic")) +
+  geom_line(mapping = aes(x = Republican_data2$SECONDYEAR, y = Republican_data2$Words, color = "Republican")) +
+  labs(x = "Year of the Second Inaugural Speech", y = "Words", title = "Words vs Years")
+```
+
+
+By cleaning the data imported and merging the dates and the basic information dataset, the first two tables are given to show their respect statistics about the words of inaugural speeches of the two parties. Those two tables demonstrate several quantiles and the mean of the words of the first inaugural speech each president gave, and the first table is the data of those presidents belonging to Democratic. Compared to the presidents of Democratic, those of Republican seem to have longer speeches for their first inauguration since the maximum number, mean and all of the shown quantiles (including 25%, 50% and 75%) are larger than those of the Democratic. 
+
+Meanwhile, I also wonder if the words of inaugural speeches of two parties may have different patterns through time. As a consequence, two plots, respectively showing how the words of inaugural speech of the presidents' first or second term changed with time, are created to see the possible differences between the two parties. From the first plot we can see that the Democratic firstly seems to have an increase in the words count. Then the overall trend of word counts from 1860s to 1970s is decreasing followed by an increasing trend at last. The Republican, however, has an unconstant trend before the 1910s. Since then, the word count has a sharp overall decrease. If we observe the graph integrally, it can be seen that the Republican's speeches contain more words than the Democratic during most of the time, which has the same conclusion as the two tables shown above.
+
+In terms of the second graph, the Democratic has a constant increase in the word count of the inaugural speeches of the presidents' second term until approximately year 2000. On the contrary, the trend of Republican is not that steady. It increases drastically at first, and then, it declines starting from the 1900s to 1950s followed by a short increase and decrease. For the word count of the speeches for the second term, we cannot find any specific difference between the two parties from the above plot.
+
+All in all, from the two tables and two plots we can see that most of the inaugural speeches of the Republican have more words during the similar time periods. 
+
+
+### Word Cloud
+```{r part5, message=FALSE, warning=FALSE}
+# Read in all the speeches
+allspeeches <- Corpus(DirSource(folder.path))
+
+#For the speeches, we remove extra white space, convert all letters to the lower case, remove [stop words], removed empty words due to formatting errors, and remove punctuation.
+allspeeches <- tm_map(allspeeches, stripWhitespace)
+allspeeches <- tm_map(allspeeches, content_transformer(tolower))
+allspeeches <- tm_map(allspeeches, removeWords, stopwords("english"))
+allspeeches <- tm_map(allspeeches, removeWords, character(0))
+allspeeches <- tm_map(allspeeches, removePunctuation)
+
+tdm.all<-TermDocumentMatrix(allspeeches)
+
+tdm.tidy <- tidy(tdm.all)
+
+tdm.overall <- summarise(group_by(tdm.tidy, term), sum(count))
+
+# Compute TF-IDF weighted document-term matrices for individual speeches.
+dtm <- DocumentTermMatrix(allspeeches,
+                          control = list(weighting = function(x)
+                                             weightTfIdf(x, 
+                                                         normalize =FALSE),
+                                         stopwords = TRUE))
+speech.dtm=tidy(dtm)
+
+# Another data visualization table
+shinyApp(
+    ui = fluidPage(
+      fluidRow(style = "padding-bottom: 20px;",
+        column(4, selectInput('speech1', 'Speech 1',
+                              speeches,
+                              selected=speeches[5])),
+        column(4, selectInput('speech2', 'Speech 2', speeches,
+                              selected=speeches[9])),
+        column(4, sliderInput('nwords', 'Number of words', 3,
+                               min = 20, max = 200, value=100, step = 20))
+      ),
+      fluidRow(
+        plotOutput('wordclouds', height = "400px")
+      )
+    ),
+
+    server = function(input, output, session) {
+
+      # Combine the selected variables into a new data frame
+      selectedData <- reactive({
+        list(dtm.term1=speech.dtm$term[speech.dtm$document==as.character(which(speeches == input$speech1))],
+             dtm.count1=speech.dtm$count[speech.dtm$document==as.character(which(speeches == input$speech1))],
+             dtm.term2=speech.dtm$term[speech.dtm$document==as.character(which(speeches == input$speech2))],
+             dtm.count2=speech.dtm$count[speech.dtm$document==as.character(which(speeches == input$speech2))])
+      })
+
+      output$wordclouds <- renderPlot(height = 400, {
+        par(mfrow=c(1,2), mar = c(0, 0, 3, 0))
+        wordcloud(selectedData()$dtm.term1, 
+                  selectedData()$dtm.count1,
+              scale=c(4,0.5),
+              max.words=input$nwords,
+              min.freq=1,
+              random.order=FALSE,
+              rot.per=0,
+              use.r.layout=FALSE,
+              random.color=FALSE,
+              colors=brewer.pal(10,"Blues"), 
+            main=input$speech1)
+        wordcloud(selectedData()$dtm.term2, 
+                  selectedData()$dtm.count2,
+              scale=c(4,0.5),
+              max.words=input$nwords,
+              min.freq=1,
+              random.order=FALSE,
+              rot.per=0,
+              use.r.layout=FALSE,
+              random.color=FALSE,
+              colors=brewer.pal(10,"Blues"), 
+            main=input$speech2)
+      })
+    },
+
+    options = list(height = 600)
+)
+```
+
+
+After observing the numerical data of the inaugural speeches, the text of those speeches are also imported and analyzed. Firstly, all the text files are stored and tidied. Then, an interactive word cloud is drew, which can simultaneously show two word clouds for respect president. Besides, you can also adjust the number of words in the word cloud which varies from 20 to 200. The word(s) with the most apparent color is the one appears the most frequently in that president's inaugural speech, and the shallowest color represents the least appeared word in that word cloud.
+
+In this project, I compared all of the speeches of presidents of each party by selecting each of the president successively. By obeserving the word cloud, my first finding is that the Republican seems to talk more about the topics related to economics and business. The reason is that there are 13 out of 24 inaugural speeches of the Republican which have at least one economics or business related word as one of the most frequent words in the word clouds. For instance, the word with the deepest color of president Ulysses S.Grant is "dollar" and "loans" is the most frequently discussed word in president William McKinley's speech. The Democratic, while, only has 4 out of 22 speeches which have at least one of those words as one of the frequent ones. Compared to the Democratic, we may say the Republican seems to be more willing to talk about economics or business during their inaugural speeches.
+
+After finding out what the Republican prefers to talk about, the Democratic is also investigated. When the Democratic's speeches are observed, it can be found that 11 out of 22 the speeches are about human rights and the unity of the public. For example, president James K.Polk's speech has "union" and "reunion" simultaneously as two of the most frequently mentioned words. Besides, "slavery" is one the deepest colored word in the word cloud of president James Buchanan's speech. On the contrary, only 5 out of 24 of the word clouds of the Republican's speeches have some words related to human rights or people's union deeply colored. Consequently, we may find that one characteristic of the Democratic's inaugural speeches is about the human rights and unity of the public.
+
+Lastly, by having these analysis, can we make any inference? From the two data summary tables and the graphs, we may try to infer that the Republican's presidents seem to prefer a longer speech. Meanwhile, by analyzing the interactive word cloud we may infer that the main concentration of the Republican is economics and business, and the Democratic focus more on the public's collaboration and human rights. However, we cannot definitively conclude those inference since more data is still needed and more text mining precedures should also be conducted to support the inferences. 
+
+
+
+# Appendix:
+
+### 1. Setup
+```{r ref.label='setup', eval=FALSE, echo=TRUE}
+```
+
+### 2. Package Installation and Loading
+```{r ref.label='part1', eval=FALSE, echo=TRUE}
+```
+
+### 3. Data Importing
+```{r ref.label='part2', eval=FALSE, echo=TRUE}
+```
+
+### 4. Sortable Table
+```{r ref.label='part3', eval=FALSE, echo=TRUE}
+```
+
+### 5. Data Manipulation and Data Analysis(1)
+```{r ref.label='part4', eval=FALSE, echo=TRUE}
+```
+
+### 6. Data Manipulation and Data Analysis(2)
+```{r ref.label='part5', eval=FALSE, echo=TRUE}
+```
